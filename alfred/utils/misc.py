@@ -83,7 +83,7 @@ def create_management_objects(dir_tree, logger, pbar, config):
     if pbar is not None:
         pbar.n = 0
         pbar.desc += f'{dir_tree.storage_dir.name}/{dir_tree.experiment_dir.name}/{dir_tree.seed_dir.name}'
-        pbar.total = config.max_episodes
+        pbar.total = config.max_episode
 
     return dir_tree, logger, pbar
 

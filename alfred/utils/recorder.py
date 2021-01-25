@@ -53,6 +53,34 @@ class Recorder(object):
         instance.tape = loaded_tape
         return instance
 
+class Aggregator(object):
+
+    def __init__(self):
+        self._data = {}
+
+    def record(self, key, value):
+        if key in self._data:
+            self._data[key].append(value)
+        else:
+            self._data[key] = [value]
+
+    def update(self, dict):
+        for (key, value) in dict.items():
+            self.record(key, value)
+
+    def pop(self, key):
+        vals = self._data.get(key, [])
+        del self._data[key]
+        return vals
+
+    def pop_mean(self, key):
+        return np.mean(self.pop(key))
+
+    def pop_all_means(self):
+        data_points = {}
+        for key in dict(self._data):
+            data_points.update({key: self.pop_mean(key)})
+        return data_points
 
 class TrainingIterator(object):
     def __init__(self, max_itr, heartbeat_ite=np.inf, heartbeat_time=np.inf):

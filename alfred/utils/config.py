@@ -115,3 +115,9 @@ def validate_config_unique(config, config_unique):
     assert type(config_unique) is dict
     assert all([config.__dict__[k] == config_unique[k] for k in config_unique.keys() if k in config.__dict__.keys()]), \
         "ERROR: config_unique.json is different than config.json"
+
+def update_config_unique(config, seed_dir):
+    if (seed_dir / "config_unique.json").exists():
+        config_unique_dict = load_dict_from_json(dir_tree.seed_dir / "config_unique.json")
+        config_unique_dict.update((k, config.__dict__[k]) for k in config_unique_dict.keys() & config.__dict__.keys())
+        save_dict_to_json(config_unique_dict, str(dir_tree.seed_dir / 'config_unique.json'))
