@@ -53,6 +53,7 @@ class Recorder(object):
         instance.tape = loaded_tape
         return instance
 
+
 class Aggregator(object):
 
     def __init__(self):
@@ -81,6 +82,7 @@ class Aggregator(object):
         for key in dict(self._data):
             data_points.update({key: self.pop_mean(key)})
         return data_points
+
 
 class TrainingIterator(object):
     def __init__(self, max_itr, heartbeat_ite=np.inf, heartbeat_time=np.inf):
@@ -158,7 +160,6 @@ class TrainingIterator(object):
             if (cur_time - prev_time) > self.heartbeat_time \
                     or (self.itr % self.heartbeat_ite == 0) \
                     or (i == self.max_itr - 1):
-
                 self._heartbeat = True
                 self._elapsed = cur_time - prev_time
                 prev_time = cur_time
