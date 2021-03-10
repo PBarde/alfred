@@ -68,33 +68,36 @@ def plot_curves(ax, ys, xs=None, colors=None, markers=None, markersize=15, marke
     for i, (x, y) in enumerate(zip(xs, ys)):
 
         if markevery is None:
-            markevery = len(y) // 10
+            if len(y) > 100:
+                markevery = len(y) // 10
+            else:
+                markevery = 1
 
         # Adds filling around curve (central tendency)
 
         if fill_up is not None and fill_down is not None:
             ax.plot(x, y, color=colors[i], marker=markers[i], markevery=markevery, markersize=markersize,
-                    label=labels[i], zorder=n-i)
-            ax.fill_between(x, y - fill_down[i], y + fill_up[i], color=colors[i], alpha=alpha_fill, zorder=n-i)
+                    label=labels[i], zorder=n - i)
+            ax.fill_between(x, y - fill_down[i], y + fill_up[i], color=colors[i], alpha=alpha_fill, zorder=n - i)
 
         # OR: Adds error bars above and below each datapoint
 
         elif error_up is not None and error_down is not None:
             ax.errorbar(x, y, color=colors[i], marker=markers[i], markevery=markevery, markersize=markersize,
-                    label=labels[i], zorder=n - i, yerr=[error_down[i], error_up[i]])
+                        label=labels[i], zorder=n - i, yerr=[error_down[i], error_up[i]])
 
         # OR: Smooth curve using running average
 
         elif smooth:
             ax.plot(x, y, color=colors[i], alpha=3 * alpha_fill)
             ax.plot(x, smooth_out(y), color=colors[i], marker=markers[i], markevery=markevery, markersize=markersize,
-                    label=labels[i], zorder=n-i)
+                    label=labels[i], zorder=n - i)
 
         # Just regular curve
 
         else:
             ax.plot(x, y, color=colors[i], marker=markers[i], markevery=markevery, markersize=markersize,
-                    label=labels[i], zorder=n-i)
+                    label=labels[i], zorder=n - i)
 
     # Axis settings
 
@@ -124,7 +127,8 @@ def plot_curves(ax, ys, xs=None, colors=None, markers=None, markersize=15, marke
 
         if legend_outside:
             if add_legend:
-                legend = ax.legend(loc=legend_loc, framealpha=0.25, bbox_to_anchor=legend_pos, markerfirst=legend_marker_first,
+                legend = ax.legend(loc=legend_loc, framealpha=0.25, bbox_to_anchor=legend_pos,
+                                   markerfirst=legend_marker_first,
                                    fancybox=True, shadow=False, ncol=legend_n_columns, fontsize=legend_font_size)
                 for legobj in legend.legendHandles:
                     legobj.set_linewidth(2.0)
