@@ -118,6 +118,6 @@ def validate_config_unique(config, config_unique):
 
 def update_config_unique(config, seed_dir):
     if (seed_dir / "config_unique.json").exists():
-        config_unique_dict = load_dict_from_json(dir_tree.seed_dir / "config_unique.json")
+        config_unique_dict = load_dict_from_json(seed_dir / "config_unique.json")
         config_unique_dict.update((k, config.__dict__[k]) for k in config_unique_dict.keys() & config.__dict__.keys())
-        save_dict_to_json(config_unique_dict, str(dir_tree.seed_dir / 'config_unique.json'))
+        save_dict_to_json(config_unique_dict, str(seed_dir / 'config_unique.json'))
