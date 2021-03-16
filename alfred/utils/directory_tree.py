@@ -99,9 +99,9 @@ class DirectoryTree(object):
         self.incrementals_dir = self.seed_dir / 'incrementals'
 
     def create_directories(self):
-        os.makedirs(str(self.seed_dir))
-        os.makedirs(str(self.recorders_dir))
-        os.makedirs(str(self.incrementals_dir))
+        os.makedirs(str(self.seed_dir), exist_ok=True)
+        os.makedirs(str(self.recorders_dir), exist_ok=True)
+        os.makedirs(str(self.incrementals_dir), exist_ok=True)
 
     def get_run_name(self):
         return self.storage_dir.name + '_' + self.experiment_dir.name + '_' + self.seed_dir.name
