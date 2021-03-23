@@ -98,12 +98,16 @@ def check_params_defined_twice(keys):
 def is_commented(str_line, commenting_char_list):
     return str_line[0] in commenting_char_list
 
+
 def remove_commented_at_end_of_line(str_line, commenting_char_list):
     '''
     Careful this function only works if commenting_char_list is ['#'] as provided at the top of this file
     '''
+    if not len(COMMENTING_CHAR_LIST) == 1:
+        raise NotImplementedError("commenting_char_list must be equal to ['#']")
     if commenting_char_list[0] in str_line:
-        return str_line.split(commenting_char_list[0], 1)[0][:-1]
+        splitted = str_line.split(commenting_char_list[0], 1)[0]
+        return splitted.replace(' ', '')
     else:
         return str_line
 
@@ -124,8 +128,11 @@ def select_storage_dirs(from_file, storage_name, root_dir):
         storage_names = [sto_name.strip('\n') for sto_name in storage_names]
 
         # drop the commented lignes in the .txt
-        storage_names = [remove_commented_at_end_of_line(sto_name,COMMENTING_CHAR_LIST) for sto_name in storage_names if not sto_name == '']
-
+        storage_names = [sto_name for sto_name in storage_names if not sto_name == '']  # remove empty lines
+        storage_names = [sto_name for sto_name in storage_names if
+                         not is_commented(sto_name, COMMENTING_CHAR_LIST)]  # Removing commented lines
+        storage_names = [remove_commented_at_end_of_line(sto_name, COMMENTING_CHAR_LIST) for sto_name in
+                         storage_names]  # Removing comments at the end of line
 
         storage_dirs = [get_root(root_dir) / sto_name for sto_name in storage_names]
 
