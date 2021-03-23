@@ -67,7 +67,7 @@ def create_management_objects(dir_tree, logger, pbar, config):
                                  seed=config.seed,
                                  root=config.root_dir)
 
-        dir_tree.create_directories()
+    dir_tree.create_directories()
 
     # Creates logger and prints config
 
