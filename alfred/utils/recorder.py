@@ -27,7 +27,10 @@ class Recorder(object):
         """
 
         # new_values_dict is not allowed to contain un-initialised keys
-        assert all([key in self.tape.keys() for key in new_values_dict.keys()])
+        if not all([key in self.tape.keys() for key in new_values_dict.keys()]):
+            key_not_in_tape = np.array([key for key in new_values_dict.keys() if key not in self.tape.keys()])
+            raise ValueError(f"{key_not_in_tape} not predefined in tape")
+
 
         for key in self.tape.keys():
             if key in new_values_dict.keys():
