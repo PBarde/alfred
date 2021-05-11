@@ -16,13 +16,14 @@ def get_clean_interrupted_args():
     parser.add_argument('--storage_name', type=str, default=None)
 
     parser.add_argument('--clean_crashes', type=parse_bool, default=False)
+    parser.add_argument('--clean_crashes_only', type=parse_bool, default=False)
     parser.add_argument('--ask_for_validation', type=parse_bool, default=True)
 
     parser.add_argument('--root_dir', default=None, type=str)
     return parser.parse_args()
 
 
-def clean_interrupted(from_file, storage_name, clean_crashes, ask_for_validation, logger, root_dir):
+def clean_interrupted(from_file, storage_name, clean_crashes, clean_crashes_only, ask_for_validation, logger, root_dir):
     # Select storage_dirs to run over
 
     storage_dirs = select_storage_dirs(from_file, storage_name, root_dir)
@@ -53,6 +54,7 @@ def clean_interrupted(from_file, storage_name, clean_crashes, ask_for_validation
                     f"\nNumber of seeds UNHATCHED = {len(unhatched_seeds)}"
                     f"\nNumber of seeds CRASHED = {len(crashed_seeds)}"
                     f"\nNumber of seeds MYSTERIOUSLY STOPPED = {len(mysteriously_stopped_seeds)}"
+                    f"\n\nclean_crashes_only={clean_crashes_only}"
                     f"\n\nclean_crashes={clean_crashes}"
                     f"\n"
                     )
@@ -76,7 +78,9 @@ def clean_interrupted(from_file, storage_name, clean_crashes, ask_for_validation
 
         # Check what should be cleaned
 
-        if clean_crashes:
+        if clean_crashes_only:
+            seeds_to_clean = crashed_seeds
+        elif clean_crashes:
             seeds_to_clean = [seed_dir for seed_dir in all_seeds
                               if seed_dir not in unhatched_seeds + completed_seeds]
         else:
