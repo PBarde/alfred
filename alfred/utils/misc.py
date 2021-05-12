@@ -4,6 +4,7 @@ from math import floor, log10
 import re
 from tqdm import tqdm
 from pathlib import Path
+import numpy as np
 
 from alfred.utils.config import config_to_str
 from alfred.utils.directory_tree import DirectoryTree, get_root
@@ -169,3 +170,19 @@ def uniquify(newfilepath):
                     max_num = num
 
     return newfilepath.parent / (newfilepath.stem + f"_{max_num + 1}" + newfilepath.suffix)
+
+
+def robust_seed_aggregate(list_of_list_of_values, aggregator, casting_op=lambda x: x):
+    ## this function works for seeds-values lists that have different lengths by aggregating only on seeds
+    ## that do actually have values for this timestep. Assumes that the lists are dense, meaning they have the
+    ## same time-steps except that some terminate earlier
+
+    n_seeds = len(list_of_list_of_values)
+    list_lens = [len(l) for l in list_of_list_of_values]
+    max_len = max(list_lens)
+    robust_aggregate = []
+    for t in range(max_len):
+        values_t = [list_of_list_of_values[s][t] for s in range(n_seeds) if t < list_lens[s]]
+        robust_aggregate.append(aggregator(values_t))
+
+    return casting_op(robust_aggregate)
