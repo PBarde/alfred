@@ -17,6 +17,7 @@ from alfred.utils.directory_tree import DirectoryTree
 DEFAULT_PLOTS_TO_MAKE = [('episode', 'eval_return', (None, None), (None, None)),
                          ('episode', 'return', (None, None), (None, None))]
 
+
 def get_make_plots_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--from_file', type=str, default=None,
@@ -36,7 +37,7 @@ def get_make_plots_args():
                              "metrics will have a lot of None's on their recording-tape, which can make the plots "
                              "look empty. Choosing --remove_nones=True removes all Nones from the tape. However "
                              "for this to work, the choosent --x_metric's and --y_metric's sizes must match.")
-
+    parser.add_argument('--aggregation_same_x', type=str, default='none', choices=['none', 'mean'])
     parser.add_argument('--root_dir', default=None, type=str)
     return parser.parse_args()
 
@@ -44,10 +45,11 @@ def get_make_plots_args():
 def plot_definition_parser(to_parse):
     def_args = to_parse.split(',')
     x_metric, y_metric, x_min, x_max, y_min, y_max = [convert_to_type_from_str(argument) for argument in def_args]
+    pass
     return (x_metric, y_metric, (x_min, x_max), (y_min, y_max))
 
 
-def create_plot_arrays(from_file, storage_name, root_dir, remove_none,
+def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregation_same_x,
                        logger, plots_to_make=DEFAULT_PLOTS_TO_MAKE):
     """
     Creates and and saves comparative figure containing a plot of total reward for each different experiment
@@ -247,6 +249,20 @@ def create_plot_arrays(from_file, storage_name, root_dir, remove_none,
                             if remove_none:
                                 loaded_recorder.tape[x_metric] = remove_nones(loaded_recorder.tape[x_metric])
                                 loaded_recorder.tape[y_metric] = remove_nones(loaded_recorder.tape[y_metric])
+
+                            if not aggregation_same_x == 'none':
+                                x_vals = np.asarray(loaded_recorder.tape[x_metric])
+                                x_distinct_vals = np.asarray(sorted(list(set(x_vals))))
+
+                                if aggregation_same_x == "mean":
+                                    y_data = np.asarray(loaded_recorder.tape[y_metric])
+                                    y_aggragated = [np.mean(y_data[x_vals == xi]) for xi in x_distinct_vals]
+                                    pass
+                                else:
+                                    raise NotImplementedError
+
+                                loaded_recorder.tape[x_metric] = list(x_distinct_vals)
+                                loaded_recorder.tape[y_metric] = list(y_aggragated)
 
                             # Plotting
 
