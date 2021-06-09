@@ -11,11 +11,10 @@ from alfred.utils.misc import create_logger, select_storage_dirs
 from alfred.utils.config import load_dict_from_json, parse_bool, convert_to_type_from_str, load_config_from_json, \
     validate_config_unique
 from alfred.utils.recorder import Recorder, remove_nones
-from alfred.utils.plots import plot_curves
+from alfred.utils.plots import plot_curves, bar_chart
 from alfred.utils.directory_tree import DirectoryTree
 
-DEFAULT_PLOTS_TO_MAKE = [('episode', 'eval_return', (None, None), (None, None)),
-                         ('episode', 'return', (None, None), (None, None))]
+DEFAULT_PLOTS_TO_MAKE = [('interaction_step', 'success', (None, None), (None, None))]
 
 
 def get_make_plots_args():
@@ -38,6 +37,8 @@ def get_make_plots_args():
                              "look empty. Choosing --remove_nones=True removes all Nones from the tape. However "
                              "for this to work, the choosent --x_metric's and --y_metric's sizes must match.")
     parser.add_argument('--aggregation_same_x', type=str, default='none', choices=['none', 'mean'])
+    parser.add_argument('--data_pickle_file_name', type=str, default='train_recorder.pkl')
+    parser.add_argument('--make_bar_plot', type=parse_bool, default=False)
     parser.add_argument('--root_dir', default=None, type=str)
     return parser.parse_args()
 
@@ -49,8 +50,8 @@ def plot_definition_parser(to_parse):
     return (x_metric, y_metric, (x_min, x_max), (y_min, y_max))
 
 
-def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregation_same_x,
-                       logger, plots_to_make=DEFAULT_PLOTS_TO_MAKE):
+def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregation_same_x, data_pickle_file_name,
+                       make_bar_plot, logger, plots_to_make=DEFAULT_PLOTS_TO_MAKE):
     """
     Creates and and saves comparative figure containing a plot of total reward for each different experiment
     :param storage_dir: pathlib.Path object of the model directory containing the experiments to compare
@@ -225,12 +226,12 @@ def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregati
                             # Loading the recorder
 
                             loaded_recorder = Recorder.init_from_pickle_file(
-                                filename=str(seed_dir / 'recorders' / 'train_recorder.pkl'))
+                                filename=str(seed_dir / 'recorders' / data_pickle_file_name))
 
                             # Checking if provided metrics are present in the recorder
 
-                            if y_metric not in loaded_recorder.tape.keys():
-                                logger.debug(f"'{y_metric}' was not recorded in train_recorder.")
+                            if y_metric not in loaded_recorder.tape.keys() and y_metric is not None:
+                                logger.debug(f"'{y_metric}' was not recorded in {data_pickle_file_name}")
                                 current_ax.text(0.2, 0.2, "ABSENT METRIC", transform=current_ax.transAxes,
                                                 fontsize=24, fontweight='bold', color='red')
                                 continue
@@ -239,7 +240,7 @@ def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregati
                                 if x_metric is None:
                                     pass
                                 else:
-                                    logger.debug(f"'{x_metric}' was not recorded in train_recorder.")
+                                    logger.debug(f"'{x_metric}' was not recorded in {data_pickle_file_name}")
                                     current_ax.text(0.2, 0.2, "ABSENT METRIC", transform=current_ax.transAxes,
                                                     fontsize=24, fontweight='bold', color='red')
                                     continue
@@ -268,26 +269,45 @@ def create_plot_arrays(from_file, storage_name, root_dir, remove_none, aggregati
 
                             try:
 
-                                if x_metric is not None:
-                                    plot_curves(current_ax,
-                                                ys=[loaded_recorder.tape[y_metric]],
-                                                xs=[loaded_recorder.tape[x_metric]],
-                                                xlim=x_lim,
-                                                ylim=y_lim,
-                                                xlabel=x_metric, title=y_metric)
+                                if make_bar_plot:
+                                    data = loaded_recorder.tape
+                                    keys = list(data.keys())
+
+                                    def post_process_group_name(group_name):
+                                        str_list = group_name.split(',', 2)
+                                        str_list = [st.split(':',2) for st in str_list]
+                                        final_group_name = [st[1] for st in str_list]
+                                        final_group_name=','.join(final_group_name)
+                                        return final_group_name
+
+                                    group_names = [post_process_group_name(key) for key in keys]
+
+                                    heights = [data[key] for key in keys]
+
+                                    current_ax.bar(x=range(len(group_names)),
+                                                   height=heights,
+                                                   tick_label=group_names)
                                 else:
-                                    plot_curves(current_ax,
-                                                ys=[loaded_recorder.tape[y_metric]],
-                                                xlim=x_lim,
-                                                ylim=y_lim,
-                                                title=y_metric)
+                                    if x_metric is not None:
+                                        plot_curves(current_ax,
+                                                    ys=[loaded_recorder.tape[y_metric]],
+                                                    xs=[loaded_recorder.tape[x_metric]],
+                                                    xlim=x_lim,
+                                                    ylim=y_lim,
+                                                    xlabel=x_metric, title=y_metric)
+                                    else:
+                                        plot_curves(current_ax,
+                                                    ys=[loaded_recorder.tape[y_metric]],
+                                                    xlim=x_lim,
+                                                    ylim=y_lim,
+                                                    title=y_metric)
 
                             except Exception as e:
                                 logger.debug(f'Polotting error: {e}')
 
                         except FileNotFoundError:
                             logger.debug('Training recorder not found')
-                            current_ax.text(0.2, 0.2, "'train_recorder'\nnot found",
+                            current_ax.text(0.2, 0.2, f"'{data_pickle_file_name}'\nnot found",
                                             transform=current_ax.transAxes, fontsize=24, fontweight='bold', color='red')
                             continue
 

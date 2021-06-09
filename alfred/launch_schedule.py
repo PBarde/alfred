@@ -5,7 +5,7 @@
 # 1. a file named 'main.py'
 # 2. a function 'main.main(config, dir_tree, logger, pbar)' that runs the project with the specified hyperparameters
 try:  # TODO: update this description
-    from main import main
+    from main_comem.main import main
 except ImportError as e:
     raise ImportError(
         f"{e.msg}\n"
@@ -161,6 +161,7 @@ def _work_on_schedule(storage_dirs, n_processes, n_experiments_per_proc, use_pba
                                            storage_name=storage_dir.name,
                                            root_dir=root_dir,
                                            remove_none=False,
+                                           aggregation_same_x='mean',
                                            logger=logger)
 
                         open(str(storage_dir / 'PLOT_ARRAYS_COMPLETED'), 'w+').close()
